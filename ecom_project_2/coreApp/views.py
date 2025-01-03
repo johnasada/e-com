@@ -4,8 +4,12 @@ from django.contrib.auth import authenticate, login, logout
 
 from django.db.models import Q
 
+from django.contrib import messages
 from .models import Category, Product
 from .forms import UserRegisterForm, UserLoginForm, ProductRegisterForm
+
+from payment.models import ShippingAddress
+from payment.forms import ShippingForm
 
 
 def home(request):
@@ -149,7 +153,29 @@ def dashboard(request):
     return render(request, "coreApp/dashboard.html", context)
 
 
+@login_required(login_url='my-login')
+def manage_shipping(request):
+    try:
+        # Account user with shipment information
+        shipping = ShippingAddress.objects.get(user=request.user.id)
+    except ShippingAddress.DoesNotExist:
+        # Account user with no shipment information
+        shipping = None
 
+    form = ShippingForm(instance=shipping)
+    if request.method == 'POST':
+        form = ShippingForm(request.POST, instance=shipping)
+        if form.is_valid():
+            # Assign the user FK on the object
+            shipping_user = form.save(commit=False)
+            # Adding the FK itself
+            shipping_user.user = request.user
+
+            shipping_user.save()
+            messages.info(request, "Update success!")
+            return redirect('coreApp:dashboard')
+    context = {'form': form}
+    return render(request, 'coreApp/manage_shipping.html', context)
 
 
 

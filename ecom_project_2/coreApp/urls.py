@@ -17,5 +17,6 @@ urlpatterns = [
 
     path("search/", views.search, name="david"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("manage-shipping/", views.manage_shipping, name="manage-shipping"),
 
 ]
